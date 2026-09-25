@@ -1,4 +1,4 @@
-[# AES-128 UVM Verification Environment
+## AES-128 UVM Verification Environment
 
 A SystemVerilog/UVM testbench that verifies the AES-128 encryption datapath (`Encrypt_Top` / `aes_wrapper`) originally designed as part of the **NTI "Digital Design using FPGA"** training program. The DUTs outputs are self-checked in time against [kokke/tiny-AES-c](https://github.com/kokke/tiny-AES-c) a reference C implementation of AES wired in through SystemVerilog DPI-C.
 
