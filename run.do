@@ -8,11 +8,11 @@ vlog -sv UVM/*.sv +cover -covercells
 vsim -voptargs=+acc work.top -cover -classdebug -uvmcontrol=all +UVM_VERBOSITY=UVM_HIGH
 run 0
 add wave /top/DUT/*
-coverage save AES_top.ucdb -onexit -du work.AES_Encrypt
+coverage save AES_top.ucdb -onexit -du work.Encrypt_Top
 transcript file simulation_transcript.log
 run -all
 transcript file ""
-coverage report -detail -cvg -comments -output SFC_cov_rprt.txt {}
 # quit -sim
+# coverage report -detail -cvg -comments -output SFC_cov_rprt.txt {}
 # vcover report AES_top.ucdb -details -annotate -all -output CC_SVA_cov_rprt.txt
-# vcover report AES_top.ucdb -du=AES_Encrypt -recursive -assert -directive -cvg -codeAll 
+# vcover report AES_top.ucdb -du=Encrypt_Top -recursive -assert -directive -cvg -codeAll

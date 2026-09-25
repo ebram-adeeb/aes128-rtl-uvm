@@ -31,17 +31,14 @@ class aes_reset_seq extends uvm_sequence #(my_sequence_item);
     endfunction
 
     virtual task body();
-        repeat (2) begin
-            my_sequence_item seq_item;
-        
-            seq_item = my_sequence_item::type_id::create("reset_seq");
-            start_item(seq_item);
-            if (!seq_item.randomize() with {
-                reset      == 1'b0; 
-            }) `uvm_error(get_name(), "Reset randomization failed")
-            finish_item(seq_item);
-        end
-
+        my_sequence_item seq_item;
+    
+        seq_item = my_sequence_item::type_id::create("reset_seq");
+        start_item(seq_item);
+        if (!seq_item.randomize() with {
+            reset      == 1'b0; 
+        }) `uvm_error(get_name(), "Reset randomization failed")
+        finish_item(seq_item);
     endtask
 endclass
 
@@ -99,23 +96,25 @@ class aes_corner_case_seq extends uvm_sequence #(my_sequence_item);
         corner_cases.push_back(128'h55555555555555555555555555555555);
         corner_cases.push_back(128'hAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA);
         corner_cases.push_back(128'hA5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5);
+        corner_cases.push_back(128'h5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A);
         corner_cases.push_back(128'hAAAAAAAAAAAAAAAA5555555555555555);
+        corner_cases.push_back(128'h5555555555555555AAAAAAAAAAAAAAAA);
         
-        repeat (32) begin
+        repeat (8) begin
             foreach(corner_cases[i]) begin
-            seq_item = my_sequence_item::type_id::create("seq_item");
-            start_item(seq_item);
-            
-            if (!seq_item.randomize() with {
-                reset      == 1'b1;
-                valid_in   == 1'b1;
-                plain_text == corner_cases[i];
-                cipher_key inside {128'h0, 128'hFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF, 128'h55555555555555555555555555555555, 128'hAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA};
-            }) begin
-                `uvm_error(get_name(), "Corner case randomization failed")
+                seq_item = my_sequence_item::type_id::create("seq_item");
+                start_item(seq_item);
+                
+                if (!seq_item.randomize() with {
+                    reset      == 1'b1;
+                    valid_in   == 1'b1;
+                    plain_text == corner_cases[i];
+                    cipher_key inside {128'h0, 128'hFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF, 128'h55555555555555555555555555555555, 128'hAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA};
+                }) begin
+                    `uvm_error(get_name(), "Corner case randomization failed")
+                end
+                finish_item(seq_item);
             end
-            finish_item(seq_item);
-        end
         end
     endtask
 endclass

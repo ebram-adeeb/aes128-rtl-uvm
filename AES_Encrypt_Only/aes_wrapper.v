@@ -34,6 +34,7 @@ module aes_wrapper (
       valid_d    <= valid_in;
       valid_out  <= valid_d;
       if (valid_d) cipher_text <= core_cipher_out;
+      else cipher_text <= 128'b0;
     end
   end
 

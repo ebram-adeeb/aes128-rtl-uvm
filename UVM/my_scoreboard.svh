@@ -5,8 +5,11 @@ import "DPI-C" function void dpi_aes_encrypt_ecb(
     );
 class my_scoreboard extends uvm_scoreboard;
     `uvm_component_utils(my_scoreboard)
-    
-    int fd;
+
+    int unsigned n_checked = 0;
+    int unsigned n_passed  = 0;
+    int unsigned n_failed  = 0;
+
     logic [127:0] exp_out;
     byte key_bytes[16];
     byte plain_bytes[16];
@@ -28,22 +31,35 @@ class my_scoreboard extends uvm_scoreboard;
 
     task write (my_sequence_item t);
 
-        // Convert bit vectors to byte arrays
-        {>>{key_bytes}}   = t.cipher_key;
-        {>>{plain_bytes}} = t.plain_text;
+        if(t.reset === 1'b1 && t.valid_in === 1'b1) begin
+            // Convert bit vectors to byte arrays
+            {>>{key_bytes}}   = t.cipher_key;
+            {>>{plain_bytes}} = t.plain_text;
 
-        dpi_aes_encrypt_ecb(key_bytes, plain_bytes, cipher_bytes);
+            dpi_aes_encrypt_ecb(key_bytes, plain_bytes, cipher_bytes);
 
-        // Convert byte array back to bit vector
-        {>>{exp_out}} = cipher_bytes;
+            // Convert byte array back to bit vector
+            {>>{exp_out}} = cipher_bytes;
+        end else exp_out = 128'h0;
 
         // COMPARE THE ACTUAL OUTPUT AND EXPECTED OUTPUT
-        if(!t.reset) exp_out = 128'h0;
-        if(exp_out == t.cipher_text)
-            `uvm_info(get_name(), $sformatf("SUCCESS , OUT IS %h and EXP OUT IS %h ", t.cipher_text , exp_out), UVM_LOW )
-        else 
-            `uvm_error(get_name(), $sformatf("FAILURE , OUT IS %h and EXP OUT IS %h ", t.cipher_text , exp_out)) 
-        
-
+        n_checked++;
+        if (exp_out == t.cipher_text) begin
+            n_passed++;
+            `uvm_info(get_name(),
+                    $sformatf("SUCCESS, OUT=%h EXP_OUT=%h", t.cipher_text, exp_out), UVM_LOW)
+        end else begin
+            n_failed++;
+            `uvm_error(get_name(),
+                    $sformatf("FAILURE, OUT=%h EXP_OUT=%h", t.cipher_text, exp_out))
+        end
     endtask
+
+    virtual function void report_phase(uvm_phase phase);
+        `uvm_info(get_name(),
+                  $sformatf("SCOREBOARD SUMMARY: checked=%0d passed=%0d failed=%0d",
+                            n_checked, n_passed, n_failed), UVM_LOW)
+        if (n_checked == 0)
+            `uvm_warning(get_type_name(), "No transactions were checked!")
+    endfunction
 endclass

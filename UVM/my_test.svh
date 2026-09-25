@@ -34,4 +34,14 @@ class my_test extends uvm_test;
 
         phase.drop_objection(this);
     endtask
+
+    virtual function void report_phase(uvm_phase phase);
+        uvm_report_server svr = uvm_report_server::get_server();
+        int unsigned n_err   = svr.get_severity_count(UVM_ERROR);
+        int unsigned n_fatal = svr.get_severity_count(UVM_FATAL);
+        int unsigned n_warn  = svr.get_severity_count(UVM_WARNING);
+
+        `uvm_info(get_name(), $sformatf("ERRORS=%0d FATALS=%0d WARNINGS=%0d", n_err, n_fatal, n_warn), UVM_LOW)
+
+    endfunction
 endclass

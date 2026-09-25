@@ -25,18 +25,18 @@ class my_driver extends uvm_driver #(my_sequence_item);
         forever begin
             seq_item_port.get_next_item(seq_item);
             //drive the v_interface data
-            @(my_vif.cb_drv);
             my_vif.cb_drv.reset       <= seq_item.reset;
             my_vif.cb_drv.valid_in    <= seq_item.valid_in;
             my_vif.cb_drv.plain_text  <= seq_item.plain_text;
             my_vif.cb_drv.cipher_key  <= seq_item.cipher_key;
-
+            @(my_vif.cb_drv);
+            
             //report driven values
             `uvm_info(get_name(), $sformatf("DRIVEN TRANSACTION | reset: %0b | valid_in: %0b | plain_text: 0x%0h | key: 0x%0h", 
                       seq_item.reset, seq_item.valid_in, seq_item.plain_text, seq_item.cipher_key), UVM_HIGH)
-            
+
+            @(my_vif.cb_drv);
             if (seq_item.reset === 1'b1 && seq_item.valid_in === 1'b1) begin
-                @(my_vif.cb_drv);
                 my_vif.cb_drv.valid_in <= 1'b0; 
                 while (my_vif.cb_drv.valid_out !== 1'b1) begin
                     @(my_vif.cb_drv);

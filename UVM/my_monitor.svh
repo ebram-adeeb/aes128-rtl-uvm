@@ -24,34 +24,27 @@ class my_monitor extends uvm_monitor;
 
     task run_phase(uvm_phase phase);
         super.run_phase(phase);
+        @(my_vif.cb_mon);
         forever begin
-            @(my_vif.cb_mon) 
             seq_item = my_sequence_item::type_id::create("seq_item");            
-            if (my_vif.cb_mon.reset === 1'b0) begin
-                //Capture Inputs
-                seq_item.reset      <= my_vif.cb_mon.reset;            
-                seq_item.valid_in   <= my_vif.cb_mon.valid_in;            
-                seq_item.plain_text <= my_vif.cb_mon.plain_text;            
-                seq_item.cipher_key <= my_vif.cb_mon.cipher_key;            
-                //Capture Outputs
-                @(my_vif.cb_mon);
-                seq_item.cipher_text  <= my_vif.cb_mon.cipher_text;
-                seq_item.valid_out    <= my_vif.cb_mon.valid_out;
-            end else if (my_vif.cb_mon.valid_in === 1'b1) begin
-                seq_item.reset      <= my_vif.cb_mon.reset;            
-                seq_item.valid_in   <= my_vif.cb_mon.valid_in;            
-                seq_item.plain_text <= my_vif.cb_mon.plain_text;            
-                seq_item.cipher_key <= my_vif.cb_mon.cipher_key;            
+            //Capture Inputs
+            @(my_vif.cb_mon);
+            seq_item.reset      <= my_vif.cb_mon.reset;            
+            seq_item.valid_in   <= my_vif.cb_mon.valid_in;            
+            seq_item.plain_text <= my_vif.cb_mon.plain_text;            
+            seq_item.cipher_key <= my_vif.cb_mon.cipher_key;
 
+            //Capture Outputs
+            if (my_vif.cb_mon.reset === 1'b1 && my_vif.cb_mon.valid_in === 1'b1) begin
                 while (my_vif.cb_mon.valid_out !== 1'b1) begin
                     @(my_vif.cb_mon);
                     if (my_vif.cb_mon.reset === 1'b0) break;
                 end
-
-                seq_item.cipher_text <= my_vif.cb_mon.cipher_text;
-                seq_item.valid_out   <= my_vif.cb_mon.valid_out;
             end
-            wait(seq_item.cipher_text  === my_vif.cb_mon.cipher_text);
+
+            seq_item.cipher_text <= my_vif.cb_mon.cipher_text;
+            seq_item.valid_out   <= my_vif.cb_mon.valid_out;
+            @(my_vif.cb_mon);
             //report monitored values
             `uvm_info(get_name(), $sformatf("MONITORED TRANSACTION | reset: %0b | valid_in: %0b | plain_text: 0x%0h | key: 0x%0h | valid_out: %0b | cipher_text: 0x%0h", 
                       seq_item.reset, seq_item.valid_in, seq_item.plain_text, seq_item.cipher_key, seq_item.valid_out, seq_item.cipher_text), UVM_HIGH)

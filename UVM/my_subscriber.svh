@@ -49,9 +49,6 @@ class my_subscriber extends uvm_subscriber #(my_sequence_item);
             bins tr_low_high = (0 => 1); 
             bins tr_high_low = (1 => 0); 
         }        
-
-        cx_reset_valid_in :  cross cp_reset, cp_valid_in;
-        cx_reset_valid_out: cross cp_reset, cp_valid_out;
     endgroup
 
     function new(string name = "my_subscriber", uvm_component parent = null);

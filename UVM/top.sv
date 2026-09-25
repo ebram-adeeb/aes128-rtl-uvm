@@ -21,8 +21,8 @@ module top;
 
     initial begin      
         in1.reset      = 1'b0;     
-        in1.plain_text = '0;
-        in1.cipher_key = '0;
+        in1.plain_text = 128'b0;
+        in1.cipher_key = 128'b0;
 
         uvm_config_db#(virtual intf_aes)::set(null, "uvm_test_top", "my_vif", in1);
         run_test("my_test");
