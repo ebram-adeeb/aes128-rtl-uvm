@@ -1,4 +1,4 @@
-# AES-128 UVM Verification Environment
+[# AES-128 UVM Verification Environment
 
 A SystemVerilog/UVM testbench that verifies the AES-128 encryption datapath (`Encrypt_Top` / `aes_wrapper`) originally designed as part of the **NTI "Digital Design using FPGA"** training program. The DUTs outputs are self-checked in time against [kokke/tiny-AES-c](https://github.com/kokke/tiny-AES-c) a reference C implementation of AES wired in through SystemVerilog DPI-C.
 
@@ -22,15 +22,11 @@ This UVM verification environment was built as the final project of **Eng. [Sher
 
 - [Coverage](#coverage)
 
-- [Running the Testbench](#running-the-testbench)
-
 - [Verification Metrics](#verification-metrics)
 
 - [Roadmap](#roadmap)
 
 - [Acknowledgments](#acknowledgments)
-
-- [License](#license)
 
 ## Overview
 
@@ -118,23 +114,15 @@ aes128-rtl-uvm/
 
 `Encrypt_Top` is a unrolled, combinational 10-round AES-128 encryption core (key expansion → 9 standard rounds → 1 final round without MixColumns). `Aes_wrapper` adds the synchronous shell around it:
 
-| Signal Direction | Width | Notes |
-
-|---|---|---|---|
-
-| `clk` | in | 1 | Free-running clock |
-
-reset` | in | 1 | **Active-low** asynchronous |
-
-| `valid_in` | in | 1 | Registers `plain_text`/`cipher_key` on the next edge |
-
-| `plain_text` | in | 128 | |
-
-| `cipher_key` | in | 128 |
-
-| `cipher_text` | out | 128 | Valid two cycles after `valid_in` |
-
-| `valid_out` | out | 1 | Pulses two cycles after `valid_in` |
+| Signal       | Direction | Width | Notes                                              |
+| ------------ | --------- | ----- | -------------------------------------------------- |
+| `clk`        | in        | 1     | Free-running clock                                 |
+| `reset`      | in        | 1     | Active-low asynchronous                            |
+| `valid_in`   | in        | 1     | Registers `plain_text`/`cipher_key` on next edge   |
+| `plain_text` | in        | 128   |                                                    |
+| `cipher_key` | in        | 128   |                                                    |
+| `cipher_text`| out       | 128   | Valid two cycles after `valid_in`                  |
+| `valid_out`  | out       | 1     | Pulses two cycles after `valid_in`                 |
 
 ## Verification Architecture
 
@@ -152,9 +140,9 @@ my_test
 
 │    ├── my_sequencer
 
-│    ├── my_driver     ──drives──▶ intf_aes.cb_drv ──▶ DUT
+│    ├── my_driver     ──drives --> intf_aes.cb_drv --> DUT
 
-│    └── my_monitor    ◀─samples── intf_aes.cb_mon ◀── DUT
+│    └── my_monitor    <-- samples── intf_aes.cb_mon <-- DUT
 
 ├── my_scoreboard   (analysis_imp from monitor)
 
@@ -186,25 +174,18 @@ output byte ciphertext[16]
 
 ## Test Sequences
 
-All sequences are orchestrated by `aes_master_seq` which runs: **reset → KAT → reset → corner cases → reset → **.
-
-| Sequence | Purpose Stimulus count |
-
-|---|---|---|
-
-| `aes_reset_seq` | Pulses the active-low reset; one instance per phase boundary | 3
-
-| `aes_kat_seq` | NIST FIPS-197 Appendix B known-answer vector, plus an all-zero key/plaintext case | 2 |
-
-| `aes_corner_case_seq` | 8 boundary patterns (`0x0` `0xFF…F` `0x55…5` `0xAA…A` `0xA5…5` `0x5A…A5` and two half-and-half patterns) × 8 repetitions, each with `cipher_key` randomized across the same 4 boundary values | 64 |
-
-| `aes_random_seq` | Fully constrained-random plaintext/key pairs | 4,096 |
-
-| **Total per regression** | | **4,165 transactions**
+All sequences are orchestrated by `aes_master_seq`, which runs: **reset -> KAT -> reset -> corner cases -> reset -> random.**
+| Sequence              | Purpose                                                                                                                                                                                                 | Stimulus count         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| `aes_reset_seq`       | Pulses the active-low reset; one instance per phase boundary                                                                                                                                            | 3                      |
+| `aes_kat_seq`         | NIST FIPS-197 Appendix B known-answer vector, plus an all-zero key/plaintext case                                                                                                                       | 2                      |
+| `aes_corner_case_seq` | 8 boundary patterns (`0x0`, `0xFF…F`, `0x55…5`, `0xAA…A`, `0xA5…5`, `0x5A…A5`, and two half-and-half patterns) × 8 repetitions, each with `cipher_key` randomized across the same 4 boundary values | 64                     |
+| `aes_random_seq`      | Fully constrained-random plaintext/key pairs                                                                                                                                                            | 4,096                  |
+| **Total per regression** |                                                                                                                                                                                                      | **4,165 transactions** |
 
 ## Coverage
 
-**Functional coverage** (`my_subscriber` / `cg_aes128_coverage`). 1 Covergroup, 35 coverpoints/crosses spanning:
+**Functional coverage** (`my_subscriber` / `cg_aes128_coverage`). 1 Covergroup, 35 coverpoints spanning:
 
 - All 16 bytes of `plain_text` and all 16 bytes of `cipher_key` each with a full 0–255 bin set
 
@@ -212,29 +193,10 @@ All sequences are orchestrated by `aes_master_seq` which runs: **reset → KAT �
 
 - `reset` transition coverage (0→1 and 1→0 bins)
 
-- Cross coverage: `reset × valid_in` `reset × valid_out`
-
 Latest run: **8,198 / 8,198 bins hit. 100.00%**.
 
 **Code coverage** (QuestaSim via `run.do`): block, condition, expression, statement and FSM coverage (`cover=bcesf`) collected on the `AES_Encrypt_Only` RTL saved to `AES_top.ucdb`. Latest run on `Encrypt_Top`: branches 781/786 (99.36%) statements 797/801 (99.50%) **99.43% total**.
 
-## Running the Testbench
-
-Requires **Siemens QuestaSim** (or ModelSim with DPI-C support) and a C compiler on your `PATH`.
-
-```bash
-
-vsim -do run.do
-
-```
-
-`run.do` will: compile the RTL with code coverage, compile `C-DPI/*.c`. Link it via DPI compile the UVM sources with functional coverage enabled run the full regression at `UVM_VERBOSITY=UVM_HIGH` and emit:
-
-- `simulation_transcript.log`. Full UVM log
-
-- `AES_top.ucdb`. Coverage database
-
-- `SFC_cov_rprt.txt`. Code coverage report
 
 ## Verification Metrics
 
