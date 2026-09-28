@@ -3,7 +3,7 @@ class my_monitor extends uvm_monitor;
     virtual interface intf_aes my_vif;
     my_sequence_item seq_item;
     uvm_analysis_port #(my_sequence_item) my_analysis_port;
-
+    int unsigned n_monitored = 0;
     function new(string name = "my_monitor", uvm_component parent = null);
         super.new(name, parent);
     endfunction
@@ -46,9 +46,14 @@ class my_monitor extends uvm_monitor;
             seq_item.valid_out   <= my_vif.cb_mon.valid_out;
             @(my_vif.cb_mon);
             //report monitored values
+            n_monitored++;
             `uvm_info(get_name(), $sformatf("MONITORED TRANSACTION | reset: %0b | valid_in: %0b | plain_text: 0x%0h | key: 0x%0h | valid_out: %0b | cipher_text: 0x%0h", 
                       seq_item.reset, seq_item.valid_in, seq_item.plain_text, seq_item.cipher_key, seq_item.valid_out, seq_item.cipher_text), UVM_HIGH)
             my_analysis_port.write(seq_item);
         end
     endtask
+
+    virtual function int get_monitored();
+        return n_monitored;
+    endfunction
 endclass

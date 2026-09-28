@@ -34,4 +34,16 @@ class my_agent extends uvm_agent;
     task run_phase(uvm_phase phase);
         super.run_phase(phase);
     endtask
+
+    virtual function bit driven_eq_monitored(); 
+        return (driver.get_driven() == monitor.get_monitored());
+    endfunction
+
+    virtual function int get_driven();
+        return driver.get_driven();
+    endfunction
+
+    virtual function int get_monitored();
+        return monitor.get_monitored();
+    endfunction
 endclass

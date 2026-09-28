@@ -25,13 +25,18 @@ class my_test extends uvm_test;
 
     task run_phase(uvm_phase phase);
         aes_master_seq master_seq;
+        int unsigned timeout_cycles = 10;
         super.run_phase(phase);
+
         phase.raise_objection(this);
         master_seq = aes_master_seq::type_id::create("master_seq");
         `uvm_info(get_name(), "Starting AES Master Sequence from Test...", UVM_LOW)
 
         master_seq.start(env.v_seqr);
 
+        env.wait_and_check_counts(timeout_cycles);
+
+        `uvm_info(get_name(), "Concluding AES Test...", UVM_LOW)
         phase.drop_objection(this);
     endtask
 

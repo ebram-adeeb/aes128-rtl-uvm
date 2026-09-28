@@ -35,4 +35,27 @@ class my_environment extends uvm_env;
     task run_phase(uvm_phase phase);
         super.run_phase(phase);
     endtask
+    
+    // virtual function bit driven_eq_monitored(); 
+    //     return agent.driven_eq_monitored();
+    // endfunction
+    
+    task wait_and_check_counts (int unsigned n);
+        while (n && agent.get_driven()>agent.get_monitored()) begin
+            @(my_vif.clk);
+            n--;
+        end 
+
+        if (agent.get_driven()>agent.get_monitored())
+            `uvm_error(get_name(), $sformatf(
+                "Timeout: driven=%0d monitored=%0d (still mismatched)",
+                agent.get_driven(), agent.get_monitored()))
+        else if (!agent.driven_eq_monitored())
+            `uvm_error(get_name(), $sformatf(
+                "Monitor Overcount: driven=%0d monitored=%0d",
+                agent.get_driven(), agent.get_monitored()))
+        else
+            `uvm_info(get_name(), $sformatf("Drained: driven=%0d monitored=%0d",
+                    agent.get_driven(), agent.get_monitored()), UVM_LOW)
+    endtask
 endclass

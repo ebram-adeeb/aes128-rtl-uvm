@@ -2,6 +2,7 @@ class my_driver extends uvm_driver #(my_sequence_item);
     `uvm_component_utils(my_driver)
     virtual interface intf_aes my_vif;
     my_sequence_item seq_item;
+    protected int unsigned n_driven = 0;
     function new(string name = "my_driver", uvm_component parent = null);
         super.new(name, parent);
     endfunction
@@ -32,6 +33,7 @@ class my_driver extends uvm_driver #(my_sequence_item);
             @(my_vif.cb_drv);
             
             //report driven values
+            n_driven++;
             `uvm_info(get_name(), $sformatf("DRIVEN TRANSACTION | reset: %0b | valid_in: %0b | plain_text: 0x%0h | key: 0x%0h", 
                       seq_item.reset, seq_item.valid_in, seq_item.plain_text, seq_item.cipher_key), UVM_HIGH)
 
@@ -45,4 +47,8 @@ class my_driver extends uvm_driver #(my_sequence_item);
             seq_item_port.item_done();
         end
     endtask
+
+    virtual function int get_driven();
+        return n_driven;
+    endfunction
 endclass

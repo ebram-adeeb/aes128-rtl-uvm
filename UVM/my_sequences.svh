@@ -121,46 +121,37 @@ endclass
 
 
 
-class aes_master_seq extends uvm_sequence #(my_sequence_item);
+class aes_master_seq extends uvm_sequence;
     `uvm_object_utils(aes_master_seq)
     `uvm_declare_p_sequencer(my_virtual_sequencer)
-    
-    aes_reset_seq       reset_seq1;
-    aes_reset_seq       reset_seq2;
-    aes_reset_seq       reset_seq3;
-    aes_corner_case_seq corner_seq;
-    aes_random_seq      rand_seq;
-    aes_kat_seq         kat_seq;
 
     function new(string name = "aes_master_seq");
         super.new(name);
     endfunction
 
     virtual task body();
-        reset_seq1  = aes_reset_seq::type_id::create("reset_seq1");
-        reset_seq2  = aes_reset_seq::type_id::create("reset_seq2");
-        reset_seq3  = aes_reset_seq::type_id::create("reset_seq3");
-        kat_seq    = aes_kat_seq::type_id::create("kat_seq");
-        corner_seq = aes_corner_case_seq::type_id::create("corner_seq");
-        rand_seq  = aes_random_seq::type_id::create("rand_seq");
-        `uvm_info(get_name(), "Resetting...", UVM_LOW)
-        reset_seq1.start(p_sequencer.seqr);
+        aes_reset_seq       reset_seq  = aes_reset_seq::type_id::create("reset_seq");
+        aes_kat_seq         kat_seq    = aes_kat_seq::type_id::create("kat_seq");
+        aes_corner_case_seq corner_seq = aes_corner_case_seq::type_id::create("corner_seq");
+        aes_random_seq      rand_seq   = aes_random_seq::type_id::create("rand_seq");
+        `uvm_info(get_name(), "Resetting...", UVM_MEDIUM)
+        reset_seq.start(p_sequencer.seqr);
 
         `uvm_info(get_name(), "Starting NIST Known Answer Test (KAT)...", UVM_LOW)
         kat_seq.start(p_sequencer.seqr);
 
-        `uvm_info(get_name(), "Resetting...", UVM_LOW)
-        reset_seq2.start(p_sequencer.seqr);
+        `uvm_info(get_name(), "Resetting...", UVM_MEDIUM)
+        reset_seq.start(p_sequencer.seqr);
 
-        `uvm_info(get_name(), "Starting corner case sequence...", UVM_LOW)
+        `uvm_info(get_name(), "Starting corner case sequence...", UVM_MEDIUM)
         corner_seq.start(p_sequencer.seqr);
 
-        `uvm_info(get_name(), "Resetting...", UVM_LOW)
-        reset_seq3.start(p_sequencer.seqr);
+        `uvm_info(get_name(), "Resetting...", UVM_MEDIUM)
+        reset_seq.start(p_sequencer.seqr);
 
-        `uvm_info(get_name(), "Starting randomized Sequence...", UVM_LOW)
+        `uvm_info(get_name(), "Starting randomized Sequence...", UVM_MEDIUM)
         rand_seq.start(p_sequencer.seqr);
         
-        `uvm_info(get_name(), "Master Sequence Complete!", UVM_LOW)
+        `uvm_info(get_name(), "Master Sequence Complete!", UVM_MEDIUM)
     endtask
 endclass

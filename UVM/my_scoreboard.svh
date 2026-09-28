@@ -6,9 +6,9 @@ import "DPI-C" function void dpi_aes_encrypt_ecb(
 class my_scoreboard extends uvm_scoreboard;
     `uvm_component_utils(my_scoreboard)
 
-    int unsigned n_checked = 0;
-    int unsigned n_passed  = 0;
-    int unsigned n_failed  = 0;
+    protected int unsigned n_checked = 0;
+    protected int unsigned n_passed  = 0;
+    protected int unsigned n_failed  = 0;
 
     logic [127:0] exp_out;
     byte key_bytes[16];
